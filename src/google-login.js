@@ -33,57 +33,57 @@ class GoogleLogin extends Component {
       responseType,
       jsSrc
     } = this.props
-    ;((d, s, id, cb) => {
-      const element = d.getElementsByTagName(s)[0]
-      const fjs = element
-      let js = element
-      js = d.createElement(s)
-      js.id = id
-      js.src = jsSrc
-      if (fjs && fjs.parentNode) {
-        fjs.parentNode.insertBefore(js, fjs)
-      } else {
-        d.head.appendChild(js)
-      }
-      js.onload = cb
-    })(document, 'script', 'google-login', () => {
-      const params = {
-        client_id: clientId,
-        cookie_policy: cookiePolicy,
-        login_hint: loginHint,
-        hosted_domain: hostedDomain,
-        fetch_basic_profile: fetchBasicProfile,
-        discoveryDocs,
-        ux_mode: uxMode,
-        redirect_uri: redirectUri,
-        scope,
-        access_type: accessType
-      }
-
-      if (responseType === 'code') {
-        params.access_type = 'offline'
-      }
-
-      window.gapi.load('auth2', () => {
-        this.enableButton()
-        if (!window.gapi.auth2.getAuthInstance()) {
-          window.gapi.auth2.init(params).then(
-            res => {
-              if (isSignedIn && res.isSignedIn.get()) {
-                this.handleSigninSuccess(res.currentUser.get())
-              }
-            },
-            err => onFailure(err)
-          )
+      ; ((d, s, id, cb) => {
+        const element = d.getElementsByTagName(s)[0]
+        const fjs = element
+        let js = element
+        js = d.createElement(s)
+        js.id = id
+        js.src = jsSrc
+        if (fjs && fjs.parentNode) {
+          fjs.parentNode.insertBefore(js, fjs)
+        } else {
+          d.head.appendChild(js)
         }
-        if (autoLoad) {
-          this.signIn()
+        js.onload = cb
+      })(document, 'script', 'google-login', () => {
+        const params = {
+          client_id: clientId,
+          cookie_policy: cookiePolicy,
+          login_hint: loginHint,
+          hosted_domain: hostedDomain,
+          fetch_basic_profile: fetchBasicProfile,
+          discoveryDocs,
+          ux_mode: uxMode,
+          redirect_uri: redirectUri,
+          scope,
+          access_type: accessType
         }
+
+        if (responseType === 'code') {
+          params.access_type = 'offline'
+        }
+
+        window.gapi.load('auth2', () => {
+          this.enableButton()
+          if (!window.gapi.auth2.getAuthInstance()) {
+            window.gapi.auth2.init(params).then(
+              res => {
+                if (isSignedIn && res.isSignedIn.get()) {
+                  this.handleSigninSuccess(res.currentUser.get())
+                }
+              },
+              err => onFailure(err)
+            )
+          }
+          if (autoLoad) {
+            this.signIn()
+          }
+        })
       })
-    })
   }
   componentWillUnmount() {
-    this.enableButton = () => {}
+    this.enableButton = () => { }
   }
   enableButton() {
     this.setState({
@@ -101,19 +101,24 @@ class GoogleLogin extends Component {
         prompt
       }
       onRequest()
-      if (responseType === 'code') {
-        auth2.grantOfflineAccess(options).then(res => onSuccess(res), err => onFailure(err))
-      } else {
-        auth2.signIn(options).then(res => this.handleSigninSuccess(res), err => onFailure(err))
-      }
+      auth2.grantOfflineAccess(options).then((authCode) => {
+        auth2.signIn(options).then(res => this.handleSigninSuccess(res, authCode), err => onFailure(err))
+        onSuccess(res)
+      }, err => onFailure(err))
+      // if (responseType === 'code') {
+      //   auth2.grantOfflineAccess(options).then(res => onSuccess(res), err => onFailure(err))
+      // } else {
+      //   auth2.signIn(options).then(res => this.handleSigninSuccess(res), err => onFailure(err))
+      // }
     }
   }
-  handleSigninSuccess(res) {
+  handleSigninSuccess(res, authCode) {
     /*
       offer renamed response keys to names that match use
     */
     const basicProfile = res.getBasicProfile()
     const authResponse = res.getAuthResponse()
+    res.authCode = authCode
     res.googleId = basicProfile.getId()
     res.tokenObj = authResponse
     res.tokenId = authResponse.id_token
@@ -254,7 +259,7 @@ GoogleLogin.defaultProps = {
   },
   icon: true,
   theme: 'light',
-  onRequest: () => {},
+  onRequest: () => { },
   jsSrc: 'https://apis.google.com/js/client:platform.js'
 }
 
