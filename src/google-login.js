@@ -103,7 +103,6 @@ class GoogleLogin extends Component {
       onRequest()
       auth2.grantOfflineAccess(options).then((authCode) => {
         auth2.signIn(options).then(res => this.handleSigninSuccess(res, authCode), err => onFailure(err))
-        onSuccess(res)
       }, err => onFailure(err))
       // if (responseType === 'code') {
       //   auth2.grantOfflineAccess(options).then(res => onSuccess(res), err => onFailure(err))
