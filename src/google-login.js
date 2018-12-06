@@ -102,7 +102,8 @@ class GoogleLogin extends Component {
       }
       onRequest()
       auth2.grantOfflineAccess(options).then((authCode) => {
-        auth2.signIn(options).then(res => this.handleSigninSuccess(res, authCode), err => onFailure(err))
+        const profile = auth2.currentUser.get().getBasicProfile();
+        this.handleSigninSuccess(profile, authCode)
       }, err => onFailure(err))
       // if (responseType === 'code') {
       //   auth2.grantOfflineAccess(options).then(res => onSuccess(res), err => onFailure(err))
@@ -111,26 +112,20 @@ class GoogleLogin extends Component {
       // }
     }
   }
-  handleSigninSuccess(res, authCode) {
+  handleSigninSuccess(profile, authCode) {
     /*
       offer renamed response keys to names that match use
     */
-    const basicProfile = res.getBasicProfile()
-    const authResponse = res.getAuthResponse()
-    res.authCode = authCode
-    res.googleId = basicProfile.getId()
-    res.tokenObj = authResponse
-    res.tokenId = authResponse.id_token
-    res.accessToken = authResponse.access_token
-    res.profileObj = {
-      googleId: basicProfile.getId(),
-      imageUrl: basicProfile.getImageUrl(),
-      email: basicProfile.getEmail(),
-      name: basicProfile.getName(),
-      givenName: basicProfile.getGivenName(),
-      familyName: basicProfile.getFamilyName()
+    profile.authCode = authCode
+    profile.profileObj = {
+      googleId: profile.Eea,
+      imageUrl: profile.Paa,
+      email: profile.U3,
+      name: profile.ig,
+      givenName: profile.ofa,
+      familyName: profile.wea
     }
-    this.props.onSuccess(res)
+    this.props.onSuccess(profile)
   }
 
   render() {
