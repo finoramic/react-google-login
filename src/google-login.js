@@ -101,31 +101,37 @@ class GoogleLogin extends Component {
         prompt
       }
       onRequest()
-      auth2.grantOfflineAccess(options).then((authCode) => {
-        const profile = auth2.currentUser.get().getBasicProfile();
-        this.handleSigninSuccess(profile, authCode)
-      }, err => onFailure(err))
-      // if (responseType === 'code') {
-      //   auth2.grantOfflineAccess(options).then(res => onSuccess(res), err => onFailure(err))
-      // } else {
-      //   auth2.signIn(options).then(res => this.handleSigninSuccess(res), err => onFailure(err))
-      // }
+      if (responseType === 'code') {
+        auth2.grantOfflineAccess(options).then(res => this.handleOfflineAccess(auth2, res), err => onFailure(err))
+      } else {
+        auth2.signIn(options).then(res => this.handleSigninSuccess(res), err => onFailure(err))
+      }
     }
   }
-  handleSigninSuccess(profile, authCode) {
+  handleOfflineAccess(auth2, res) {
+    const profile = auth2.currentUser.get()
+    this.handleSigninSuccess(profile, res)
+  }
+  handleSigninSuccess(res, authCode) {
     /*
       offer renamed response keys to names that match use
     */
-    profile.authCode = authCode
-    profile.profileObj = {
-      googleId: profile.Eea,
-      imageUrl: profile.Paa,
-      email: profile.U3,
-      name: profile.ig,
-      givenName: profile.ofa,
-      familyName: profile.wea
+    const basicProfile = res.getBasicProfile()
+    const authResponse = res.getAuthResponse()
+    res.authCode = authCode
+    res.googleId = basicProfile.getId()
+    res.tokenObj = authResponse
+    res.tokenId = authResponse.id_token
+    res.accessToken = authResponse.access_token
+    res.profileObj = {
+      googleId: basicProfile.getId(),
+      imageUrl: basicProfile.getImageUrl(),
+      email: basicProfile.getEmail(),
+      name: basicProfile.getName(),
+      givenName: basicProfile.getGivenName(),
+      familyName: basicProfile.getFamilyName()
     }
-    this.props.onSuccess(profile)
+    this.props.onSuccess(res)
   }
 
   render() {
