@@ -90,6 +90,16 @@ class GoogleLogin extends Component {
       disabled: false
     })
   }
+
+  getSignedInUser(auth) {
+    const sleep = (milliseconds) => {
+      return new Promise(resolve => setTimeout(resolve, milliseconds))
+    };
+    return auth.isSignedIn.get()
+      ? Promise.resolve(auth.currentUser.get()) 
+      : sleep(100).then(() => this.getSignedInUser(auth));
+  }
+
   signIn(e) {
     if (e) {
       e.preventDefault() // to prevent submit if used within form
@@ -102,7 +112,13 @@ class GoogleLogin extends Component {
       }
       onRequest()
       if (responseType === 'code') {
-        auth2.grantOfflineAccess(options).then(res => this.handleOfflineAccess(auth2, res), err => onFailure(err))
+        let authToken;
+        auth2.grantOfflineAccess(options)
+          .then(authResponse => {
+            authToken = authResponse;
+            return this.getSignedInUser(auth2)
+          })
+          .then(() => this.handleOfflineAccess(auth2, authToken), err => onFailure(err))
       } else {
         auth2.signIn(options).then(res => this.handleSigninSuccess(res), err => onFailure(err))
       }
